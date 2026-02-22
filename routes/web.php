@@ -10,8 +10,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified', 'user'])
+    ->get('/dashboard', fn () => Inertia::render('dashboard'))
+    ->name('dashboard');
 
 require __DIR__.'/settings.php';
+require __DIR__.'/auth/superadmin.php';
+require __DIR__.'/auth/admin.php';
+require __DIR__.'/auth/ketua.php';

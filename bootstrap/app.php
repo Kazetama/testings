@@ -1,10 +1,8 @@
 <?php
 
-use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Configuration\{Exceptions, Middleware};
+use App\Http\Middleware\{HandleAppearance, HandleInertiaRequests};
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -13,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) {
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
@@ -21,7 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        $middleware->alias([
+            'superadmin'        => \App\Http\Middleware\SuperadminMiddleware::class,
+            'admin'             => \App\Http\Middleware\AdminMiddleware::class,
+            'ketua'             => \App\Http\Middleware\KetuaMiddleware::class,
+            'user'              => \App\Http\Middleware\UserMiddleware::class,
+            'redirect.usertype' => \App\Http\Middleware\RedirectUsertype::class,
+        ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+    ->withExceptions(fn (Exceptions $exceptions) => null)
+    ->create();

@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -22,7 +23,28 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'usertype',
     ];
+
+    public function isSuperadmin(): bool
+    {
+        return $this->usertype === 'superadmin';
+    }
+
+    public function isKetua(): bool
+    {
+        return $this->usertype === 'ketua';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->usertype === 'admin';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->usertype === 'user';
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -48,5 +70,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function lecturer()
+    {
+        return $this->hasOne(Lecturer::class);
     }
 }

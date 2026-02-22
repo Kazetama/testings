@@ -1,3 +1,9 @@
+export type Usertype =
+    | 'user'
+    | 'admin'
+    | 'superadmin'
+    | 'ketua'
+
 export type User = {
     id: number;
     name: string;
@@ -12,6 +18,7 @@ export type User = {
 
 export type Auth = {
     user: User;
+    usertype: Usertype
 };
 
 export type TwoFactorSetupData = {
