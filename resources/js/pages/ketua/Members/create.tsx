@@ -4,7 +4,6 @@ import AppLayout from '@/layouts/app-layout';
 import React from 'react';
 
 export default function Create() {
-    // Memberikan tipe MemberFormData pada useForm agar TypeScript sinkron
     const { data, setData, post, processing, errors } = useForm<MemberFormData>({
         full_name: '',
         nim: '',
@@ -26,7 +25,7 @@ export default function Create() {
                 <MemberForm
                     title="Registrasi Member Baru"
                     data={data}
-                    setData={(key, value) => setData(key, value as any)}
+                    setData={setData}
                     errors={errors}
                     processing={processing}
                     onSubmit={submit}
