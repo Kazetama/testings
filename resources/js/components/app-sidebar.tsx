@@ -38,6 +38,13 @@ const mainNavItems: NavItem[] = [
         usertype: ['admin'],
     },
 
+    {
+        title: 'Program Organisasi',
+        href: '/admin/program',
+        icon: LayoutGrid,
+        usertype: ['admin'],
+    },
+
     // superadmin navbar items
     {
         title: 'Superadmin Dashboard',
