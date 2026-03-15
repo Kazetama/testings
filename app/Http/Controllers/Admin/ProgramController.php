@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProgramRequest;
 use App\Models\Program;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
@@ -41,16 +42,9 @@ class ProgramController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(ProgramRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255|unique:programs,name',
-            'description' => 'required|string',
-            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'keywords' => 'nullable|string',
-        ]);
+        $data = $request->validated();
 
         $data['slug'] = Str::slug($data['name']) . '-' . uniqid();
 
@@ -63,30 +57,24 @@ class ProgramController extends Controller
             ->with('success', 'Program berhasil ditambahkan.');
     }
 
-    public function update(Request $request, int $id)
+    public function update(ProgramRequest $request, int $id)
     {
         $program = Program::findOrFail($id);
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255|unique:programs,name,' . $program->id,
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'keywords' => 'nullable|string',
-        ]);
+        $data = $request->validated();
 
-        // Update slug kalau nama berubah
         if ($program->name !== $data['name']) {
             $data['slug'] = Str::slug($data['name']) . '-' . uniqid();
         }
 
-        // Replace image jika upload baru
         if ($request->hasFile('image')) {
+
             if ($program->image && Storage::disk('public')->exists($program->image)) {
                 Storage::disk('public')->delete($program->image);
             }
+
             $data['image'] = $request->file('image')->store('programs', 'public');
+
         } else {
             unset($data['image']);
         }

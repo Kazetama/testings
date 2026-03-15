@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Ketua;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
-use App\Http\Requests\MemberRequest;
+use App\Http\Requests\Ketua\MemberRequest;
 use Inertia\Inertia;
 
 class MemberController extends Controller
