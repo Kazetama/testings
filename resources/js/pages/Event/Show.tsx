@@ -1,13 +1,13 @@
 import { Head, useForm, Link } from '@inertiajs/react'
 import { ArrowLeft, Send, CheckCircle, Info, ChevronRight, Share2, Calendar, FileText } from 'lucide-react'
-import { useState } from 'react'
 
 // Import Shadcn UI Components
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
     Select,
     SelectContent,
@@ -15,8 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Textarea } from '@/components/ui/textarea'
 import type { Event, RegistrationField } from '@/types/event'
 
 interface Props {
@@ -24,7 +23,7 @@ interface Props {
 }
 
 export default function Show({ event }: Props) {
-    const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm<Record<string, any>>({})
+    const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm<Record<string, string | number | boolean | null>>({})
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -52,7 +51,7 @@ export default function Show({ event }: Props) {
                         id={fieldId}
                         type="text"
                         placeholder={`Masukkan ${field.name.toLowerCase()}...`}
-                        value={data[fieldName] || ''}
+                        value={(data[fieldName] as string | number) || ''}
                         onChange={(e) => setData(fieldName, e.target.value)}
                         className={`h-12 rounded-xl bg-gray-50 border-gray-100 ${errors[fieldName] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-600'}`}
                     />
@@ -63,7 +62,7 @@ export default function Show({ event }: Props) {
                         id={fieldId}
                         type="number"
                         placeholder="0"
-                        value={data[fieldName] || ''}
+                        value={(data[fieldName] as string | number) || ''}
                         onChange={(e) => setData(fieldName, e.target.value)}
                         className={`h-12 rounded-xl bg-gray-50 border-gray-100 ${errors[fieldName] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-600'}`}
                     />
@@ -74,7 +73,7 @@ export default function Show({ event }: Props) {
                         id={fieldId}
                         type="email"
                         placeholder="contoh@email.com"
-                        value={data[fieldName] || ''}
+                        value={(data[fieldName] as string | number) || ''}
                         onChange={(e) => setData(fieldName, e.target.value)}
                         className={`h-12 rounded-xl bg-gray-50 border-gray-100 ${errors[fieldName] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-600'}`}
                     />
@@ -85,7 +84,7 @@ export default function Show({ event }: Props) {
                         id={fieldId}
                         rows={4}
                         placeholder={`Tuliskan ${field.name.toLowerCase()}...`}
-                        value={data[fieldName] || ''}
+                        value={(data[fieldName] as string | number) || ''}
                         onChange={(e) => setData(fieldName, e.target.value)}
                         className={`rounded-xl bg-gray-50 border-gray-100 ${errors[fieldName] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-600'} resize-none`}
                     />
@@ -121,7 +120,7 @@ export default function Show({ event }: Props) {
                     <div className="flex items-center space-x-3 p-4 rounded-xl bg-blue-50/30 border border-blue-100">
                         <Checkbox 
                             id={fieldId} 
-                            checked={data[fieldName] || false}
+                            checked={data[fieldName] === true}
                             onCheckedChange={(val) => setData(fieldName, val)}
                         />
                         <Label htmlFor={fieldId} className="text-sm font-medium leading-none cursor-pointer">
@@ -217,9 +216,29 @@ export default function Show({ event }: Props) {
                                 <CardTitle className="text-2xl font-black text-gray-900 mb-2">Pendaftaran Online</CardTitle>
                                 <CardDescription className="font-medium text-gray-500">
                                     {event.status === 'open' 
-                                        ? 'Pendaftaran dibuka untuk publik. Isi data di bawah ini.' 
-                                        : 'Mohon maaf, pendaftaran telah ditutup.'}
+                                        ? (event.participants_count! >= event.max_participants! && event.max_participants !== null)
+                                            ? 'Mohon maaf, pendaftaran sudah penuh.'
+                                            : 'Pendaftaran dibuka untuk publik. Isi data di bawah ini.' 
+                                        : event.status === 'coming_soon'
+                                            ? 'Event akan segera hadir. Pantau terus untuk pembukaan pendaftaran.'
+                                            : 'Mohon maaf, pendaftaran telah ditutup.'}
                                 </CardDescription>
+                                {event.max_participants && (
+                                    <div className="mt-4 space-y-2">
+                                        <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                            <span>Kapasitas</span>
+                                            <span>{event.participants_count} / {event.max_participants}</span>
+                                        </div>
+                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full transition-all duration-1000 ${
+                                                    (event.participants_count! / event.max_participants!) >= 0.9 ? 'bg-red-500' : 'bg-blue-600'
+                                                }`}
+                                                style={{ width: `${Math.min((event.participants_count! / event.max_participants!) * 100, 100)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </CardHeader>
                             <CardContent className="p-8 pt-4">
                                 {recentlySuccessful ? (
@@ -239,8 +258,13 @@ export default function Show({ event }: Props) {
                                             Daftar Lagi?
                                         </Button>
                                     </div>
-                                ) : event.status === 'open' ? (
+                                ) : event.status === 'open' && (event.max_participants === null || event.participants_count! < event.max_participants!) ? (
                                     <form onSubmit={handleSubmit} className="space-y-8">
+                                        {errors.message && (
+                                            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2 duration-300">
+                                                {errors.message}
+                                            </div>
+                                        )}
                                         {event.registration_fields?.map((field) => renderField(field))}
                                         
                                         <Button 
@@ -262,10 +286,24 @@ export default function Show({ event }: Props) {
                                 ) : (
                                     <div className="text-center py-12 space-y-4">
                                         <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                            <Info className="w-10 h-10 text-red-600" />
+                                            {event.status === 'coming_soon' ? (
+                                                <Calendar className="w-10 h-10 text-indigo-600" />
+                                            ) : (
+                                                <Info className="w-10 h-10 text-red-600" />
+                                            )}
                                         </div>
-                                        <h4 className="text-xl font-bold text-gray-900">Registrasi Ditutup</h4>
-                                        <p className="text-gray-500 text-sm">Cek event menarik lainnya di website kami!</p>
+                                        <h4 className="text-xl font-bold text-gray-900">
+                                            {event.status === 'coming_soon' 
+                                                ? 'Segera Hadir' 
+                                                : (event.status === 'open' && event.participants_count! >= event.max_participants!)
+                                                    ? 'Kapasitas Penuh'
+                                                    : 'Registrasi Ditutup'}
+                                        </h4>
+                                        <p className="text-gray-500 text-sm">
+                                            {event.status === 'coming_soon'
+                                                ? 'Pantau terus halaman ini untuk informasi pembukaan pendaftaran.'
+                                                : 'Cek event menarik lainnya di website kami!'}
+                                        </p>
                                         <Button asChild variant="link" className="text-blue-600">
                                             <Link href="/event">Lihat Event Lainnya</Link>
                                         </Button>

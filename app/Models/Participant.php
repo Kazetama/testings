@@ -11,6 +11,7 @@ class Participant extends Model
 
     protected $fillable = [
         'event_id',
+        'device_identifier',
         'registration_data',
     ];
 

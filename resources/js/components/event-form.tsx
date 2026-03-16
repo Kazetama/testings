@@ -1,7 +1,6 @@
 import { useForm } from '@inertiajs/react'
-import { Save, Image as ImageIcon, ArrowLeft, Plus, Trash2, GripVertical } from 'lucide-react'
+import { Save, Image as ImageIcon, ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import type { FormEvent, ChangeEvent } from 'react'
-import { useState } from 'react'
 
 // Import Shadcn UI Components
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,6 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
     Select,
     SelectContent,
@@ -23,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import type { Event, RegistrationField } from '@/types/event'
 
 interface EventFormData {
@@ -31,7 +30,8 @@ interface EventFormData {
     description: string
     image: File | null
     registration_fields: RegistrationField[]
-    status: 'open' | 'closed'
+    status: 'open' | 'closed' | 'coming_soon'
+    max_participants: number | ''
     is_public: boolean
     meta_title: string
     meta_description: string
@@ -53,7 +53,8 @@ export default function EventForm({ event, url, method }: Props) {
         registration_fields: event?.registration_fields ?? [
             { name: 'Nama Lengkap', type: 'text', required: true }
         ],
-        status: event?.status ?? 'open',
+        status: event?.status ?? 'coming_soon',
+        max_participants: event?.max_participants ?? '',
         is_public: event?.is_public ?? true,
         meta_title: event?.meta_title ?? '',
         meta_description: event?.meta_description ?? '',
@@ -170,6 +171,7 @@ export default function EventForm({ event, url, method }: Props) {
                                                 <SelectValue placeholder="Pilih Status" />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value="coming_soon">Coming Soon</SelectItem>
                                                 <SelectItem value="open">Dibuka</SelectItem>
                                                 <SelectItem value="closed">Ditutup</SelectItem>
                                             </SelectContent>
@@ -178,14 +180,18 @@ export default function EventForm({ event, url, method }: Props) {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Label className="text-gray-700 font-bold">Visibilitas</Label>
-                                    <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50/50">
-                                        <span className="text-sm font-medium text-gray-600">Publikasikan Event?</span>
-                                        <Switch 
-                                            checked={data.is_public}
-                                            onCheckedChange={(val) => setData('is_public', val)}
+                                    <Label htmlFor="max_participants" className="text-gray-700 font-bold">Batas Peserta (Opsional)</Label>
+                                    <div className="flex items-center gap-4 p-3 border rounded-lg bg-gray-50/50">
+                                        <Input
+                                            id="max_participants"
+                                            type="number"
+                                            placeholder="Kosongkan jika tidak ada batas"
+                                            value={data.max_participants}
+                                            onChange={(e) => setData('max_participants', e.target.value === '' ? '' : parseInt(e.target.value))}
+                                            className="bg-white"
                                         />
                                     </div>
+                                    {errors.max_participants && <p className="text-xs text-red-500 font-medium">{errors.max_participants}</p>}
                                 </div>
                             </div>
 
@@ -232,7 +238,7 @@ export default function EventForm({ event, url, method }: Props) {
                                         <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tipe Form</Label>
                                         <Select 
                                             value={field.type} 
-                                            onValueChange={(val: any) => updateField(index, { type: val })}
+                                            onValueChange={(val: RegistrationField['type']) => updateField(index, { type: val })}
                                         >
                                             <SelectTrigger className="bg-gray-50/50 border-gray-200">
                                                 <SelectValue />

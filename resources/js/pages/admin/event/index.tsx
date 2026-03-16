@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react'
-import { Plus, Pencil, Trash2, Eye, MoreHorizontal, CheckCircle2, XCircle, Search, Inbox } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, MoreHorizontal, CheckCircle2, XCircle, Search, Inbox, Users } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 
 // Import Shadcn UI Components
@@ -46,8 +46,10 @@ interface Event {
     name: string
     description: string
     image: string
-    status: 'open' | 'closed'
+    status: 'open' | 'closed' | 'coming_soon'
     is_public: boolean
+    max_participants: number | null
+    participants_count?: number
     meta_title?: string | null
     meta_description?: string | null
     keywords?: string | null
@@ -190,12 +192,29 @@ export default function Index({ events, filters }: Props) {
                                         {/* STATUS */}
                                         <TableCell className="hidden md:table-cell align-top py-4">
                                             <div className="flex flex-col gap-2">
-                                                <Badge variant={event.status === 'open' ? 'default' : 'secondary'} className={event.status === 'open' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}>
-                                                    {event.status === 'open' ? 'Pendaftaran Dibuka' : 'Ditutup'}
-                                                </Badge>
-                                                <Badge variant="outline" className={event.is_public ? 'text-blue-600 border-blue-200' : 'text-amber-600 border-amber-200'}>
-                                                    {event.is_public ? 'Publik' : 'Privat'}
-                                                </Badge>
+                                                {event.status === 'open' ? (
+                                                    <Badge variant="default" className="bg-green-100 text-green-700 border-green-200">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                                                        Pendaftaran Dibuka
+                                                    </Badge>
+                                                ) : event.status === 'coming_soon' ? (
+                                                    <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border-indigo-200">
+                                                        Coming Soon
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="secondary" className="bg-red-100 text-red-700 border-red-200">
+                                                        <XCircle className="w-3.5 h-3.5 mr-1.5" />
+                                                        Ditutup
+                                                    </Badge>
+                                                )}
+                                                
+                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-50 border border-gray-100">
+                                                    <Users className="w-3.5 h-3.5 text-gray-500" />
+                                                    <span className="text-xs font-medium text-gray-700">
+                                                        {event.participants_count ?? 0}
+                                                        {event.max_participants ? ` / ${event.max_participants}` : ''}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </TableCell>
 

@@ -32,7 +32,8 @@ class EventRequest extends FormRequest
             'registration_fields.*.type' => 'required|string|in:text,number,email,textarea,select,radio,checkbox',
             'registration_fields.*.required' => 'required|boolean',
             'registration_fields.*.options' => 'nullable|string', // comma separated for select/radio/checkbox
-            'status' => 'required|in:open,closed',
+            'max_participants' => 'nullable|integer|min:1',
+            'status' => 'required|in:open,closed,coming_soon',
             'is_public' => 'required|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',

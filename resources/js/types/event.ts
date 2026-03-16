@@ -5,7 +5,9 @@ export interface Event {
     description: string
     image: string
     registration_fields: RegistrationField[] | null
-    status: 'open' | 'closed'
+    status: 'open' | 'closed' | 'coming_soon'
+    max_participants: number | null
+    participants_count?: number
     is_public: boolean
     meta_title: string | null
     meta_description: string | null

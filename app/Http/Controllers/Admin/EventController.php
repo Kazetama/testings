@@ -22,6 +22,7 @@ class EventController extends Controller
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             })
+            ->withCount('participants')
             ->latest()
             ->paginate(10)
             ->withQueryString();

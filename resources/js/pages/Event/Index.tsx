@@ -1,20 +1,15 @@
 import { Head, Link } from '@inertiajs/react'
-import { Calendar, MapPin, ArrowRight, Search, Inbox } from 'lucide-react'
+import { Calendar, ArrowRight, Search, Inbox } from 'lucide-react'
 import { useState } from 'react'
 
 // Import Shadcn UI Components
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import type { Event } from '@/types/event'
-
-interface PaginatedEvents {
-    data: Event[]
-    links: any[]
-}
+import type { Event, PaginatedData } from '@/types'
 
 interface Props {
-    events: PaginatedEvents
+    events: PaginatedData<Event>
 }
 
 export default function Index({ events }: Props) {
@@ -62,8 +57,12 @@ export default function Index({ events }: Props) {
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                     <div className="absolute top-4 right-4">
-                                        <div className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold text-gray-900 shadow-sm border border-white/50">
-                                            {event.status === 'open' ? 'REGISTRATION OPEN' : 'CLOSED'}
+                                        <div className={`bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-white/50 ${
+                                            event.status === 'open' ? 'text-green-600' : 
+                                            event.status === 'coming_soon' ? 'text-indigo-600' : 'text-red-600'
+                                        }`}>
+                                            {event.status === 'open' ? 'REGISTRATION OPEN' : 
+                                             event.status === 'coming_soon' ? 'COMING SOON' : 'CLOSED'}
                                         </div>
                                     </div>
                                 </div>

@@ -15,7 +15,8 @@ class PublicEventController extends Controller
     {
         return Inertia::render('Event/Index', [
             'events' => Event::where('is_public', true)
-                ->where('status', 'open')
+                ->whereIn('status', ['open', 'coming_soon'])
+                ->withCount('participants')
                 ->latest()
                 ->paginate(12)
         ]);
@@ -25,6 +26,7 @@ class PublicEventController extends Controller
     {
         $event = Event::where('slug', $slug)
             ->where('is_public', true)
+            ->withCount('participants')
             ->firstOrFail();
 
         return Inertia::render('Event/Show', [
@@ -37,6 +39,19 @@ class PublicEventController extends Controller
         $event = Event::where('slug', $slug)
             ->where('status', 'open')
             ->firstOrFail();
+
+        if ($event->isFull()) {
+            return back()->withErrors(['message' => 'Maaf, pendaftaran untuk event ini sudah penuh.'])->withInput();
+        }
+
+        $deviceIdentifier = md5($request->ip() . '|' . $request->userAgent());
+        $alreadyRegistered = Participant::where('event_id', $event->id)
+            ->where('device_identifier', $deviceIdentifier)
+            ->exists();
+
+        if ($alreadyRegistered) {
+            return back()->withErrors(['message' => 'Anda sudah terdaftar untuk event ini menggunakan perangkat ini.'])->withInput();
+        }
 
         $formFields = $event->registration_fields ?? [];
         $rules = [];
@@ -73,6 +88,7 @@ class PublicEventController extends Controller
 
         Participant::create([
             'event_id' => $event->id,
+            'device_identifier' => $deviceIdentifier,
             'registration_data' => $request->only(array_keys($rules))
         ]);
 

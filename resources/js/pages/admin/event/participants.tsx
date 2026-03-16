@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, Download, User, Calendar, FileSpreadsheet, Search, Inbox } from 'lucide-react'
+import { ArrowLeft, Calendar, FileSpreadsheet, Search, Inbox } from 'lucide-react'
 import { useState } from 'react'
 
 // Import Shadcn UI Components
@@ -8,9 +8,9 @@ import {
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
-    CardDescription
+    CardTitle
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import {
     Table,
     TableBody,
@@ -19,24 +19,18 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
 import AppLayout from '@/layouts/app-layout'
-import type { Event } from '@/types/event'
+import type { Event, PaginatedData } from '@/types'
 
 interface Participant {
     id: number
-    registration_data: Record<string, any>
+    registration_data: Record<string, string | number | boolean | null>
     created_at: string
-}
-
-interface PaginatedParticipants {
-    data: Participant[]
-    links: any[]
 }
 
 interface Props {
     event: Event
-    participants: PaginatedParticipants
+    participants: PaginatedData<Participant>
 }
 
 export default function Participants({ event, participants }: Props) {

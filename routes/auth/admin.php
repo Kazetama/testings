@@ -11,11 +11,7 @@ Route::middleware(['auth', 'redirect.usertype', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get(
-            '/dashboard',
-            fn() =>
-            Inertia::render('admin/dashboard')
-        )->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('event/{event}/participants', [EventController::class, 'participants'])->name('event.participants');
         Route::get('event/{event}/export', [EventController::class, 'export'])->name('event.export');
