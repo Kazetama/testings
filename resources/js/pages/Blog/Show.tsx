@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import AppLayout from '@/layouts/app-layout'
 
 // Import Quill CSS for generic styling of content
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill-new/dist/quill.snow.css'
 
 interface Post {
     id: number
