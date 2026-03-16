@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ProgramRequest extends FormRequest
+class EventRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,19 +14,26 @@ class ProgramRequest extends FormRequest
 
     public function rules(): array
     {
-        $programId = $this->route('id');
+        $eventId = $this->route('event');
 
         return [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('programs', 'name')->ignore($programId)
+                Rule::unique('events', 'name')->ignore($eventId)
             ],
             'description' => 'required|string',
             'image' => $this->isMethod('post')
                 ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048'
                 : 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'registration_fields' => 'nullable|array',
+            'registration_fields.*.name' => 'required|string',
+            'registration_fields.*.type' => 'required|string|in:text,number,email,textarea,select,radio,checkbox',
+            'registration_fields.*.required' => 'required|boolean',
+            'registration_fields.*.options' => 'nullable|string', // comma separated for select/radio/checkbox
+            'status' => 'required|in:open,closed',
+            'is_public' => 'required|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'keywords' => 'nullable|string',

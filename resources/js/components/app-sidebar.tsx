@@ -39,8 +39,8 @@ const mainNavItems: NavItem[] = [
     },
 
     {
-        title: 'Program Organisasi',
-        href: '/admin/program',
+        title: 'Event Organisasi',
+        href: '/admin/event',
         icon: LayoutGrid,
         usertype: ['admin'],
     },

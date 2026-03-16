@@ -41,11 +41,13 @@ import {
 } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
 
-interface Program {
+interface Event {
     id: number
     name: string
     description: string
     image: string
+    status: 'open' | 'closed'
+    is_public: boolean
     meta_title?: string | null
     meta_description?: string | null
     keywords?: string | null
@@ -61,17 +63,17 @@ interface PaginatedData<T> {
 }
 
 interface Props {
-    programs: PaginatedData<Program>
+    events: PaginatedData<Event>
     filters: { search?: string }
 }
 
-export default function Index({ programs, filters }: Props) {
+export default function Index({ events, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters?.search || '')
     const isFirstRender = useRef(true)
 
-    const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
     const [isViewOpen, setIsViewOpen] = useState(false)
-    const [programToDelete, setProgramToDelete] = useState<number | null>(null)
+    const [eventToDelete, setEventToDelete] = useState<number | null>(null)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
     useEffect(() => {
@@ -82,7 +84,7 @@ export default function Index({ programs, filters }: Props) {
 
         const timeoutId = setTimeout(() => {
             router.get(
-                '/admin/program',
+                '/admin/event',
                 { search: searchTerm },
                 { preserveState: true, preserveScroll: true, replace: true }
             )
@@ -91,22 +93,22 @@ export default function Index({ programs, filters }: Props) {
         return () => clearTimeout(timeoutId)
     }, [searchTerm])
 
-    const handleView = (program: Program) => {
-        setSelectedProgram(program)
+    const handleView = (event: Event) => {
+        setSelectedEvent(event)
         setIsViewOpen(true)
     }
 
     const confirmDelete = (id: number) => {
-        setProgramToDelete(id)
+        setEventToDelete(id)
         setIsDeleteOpen(true)
     }
 
     const executeDelete = () => {
-        if (programToDelete) {
-            router.delete(`/admin/program/${programToDelete}`, {
+        if (eventToDelete) {
+            router.delete(`/admin/event/${eventToDelete}`, {
                 onSuccess: () => {
                     setIsDeleteOpen(false)
-                    setProgramToDelete(null)
+                    setEventToDelete(null)
                 },
             })
         }
@@ -114,16 +116,16 @@ export default function Index({ programs, filters }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Program Management" />
+            <Head title="Event Management" />
 
             <div className="p-6 space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                            Program Management
+                            Event Management
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">
-                            Kelola daftar program, detail informasi, dan pantau kelengkapan SEO.
+                            Kelola daftar event, pendaftaran, dan pantau kelengkapan SEO.
                         </p>
                     </div>
 
@@ -139,9 +141,9 @@ export default function Index({ programs, filters }: Props) {
                             />
                         </div>
                         <Button asChild className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white shadow-sm rounded-lg shrink-0">
-                            <Link href="/admin/program/create">
+                            <Link href="/admin/event/create">
                                 <Plus className="mr-2 h-4 w-4" />
-                                Create Program
+                                Create Event
                             </Link>
                         </Button>
                     </div>
@@ -152,21 +154,22 @@ export default function Index({ programs, filters }: Props) {
                         <TableHeader className="bg-gray-50/80 border-b border-gray-200">
                             <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-[120px] pl-6 py-4 font-semibold text-gray-700">Cover</TableHead>
-                                <TableHead className="font-semibold text-gray-700">Informasi Program</TableHead>
-                                <TableHead className="hidden md:table-cell font-semibold text-gray-700 w-52">SEO Status</TableHead>
+                                <TableHead className="font-semibold text-gray-700">Informasi Event</TableHead>
+                                <TableHead className="hidden md:table-cell font-semibold text-gray-700">Status</TableHead>
+                                <TableHead className="hidden md:table-cell font-semibold text-gray-700 w-40">SEO Status</TableHead>
                                 <TableHead className="w-[80px] text-center pr-6 font-semibold text-gray-700">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {programs.data.length > 0 ? (
-                                programs.data.map((program) => (
-                                    <TableRow key={program.id} className="hover:bg-gray-50 group transition-colors border-b border-gray-100 last:border-0">
+                            {events.data.length > 0 ? (
+                                events.data.map((event) => (
+                                    <TableRow key={event.id} className="hover:bg-gray-50 group transition-colors border-b border-gray-100 last:border-0">
                                         {/* IMAGE */}
                                         <TableCell className="pl-6 py-4 align-top">
                                             <div className="w-24 h-16 rounded-md border border-gray-200 overflow-hidden bg-gray-50 shadow-sm">
                                                 <img
-                                                    src={`/storage/${program.image}`}
-                                                    alt={program.name}
+                                                    src={`/storage/${event.image}`}
+                                                    alt={event.name}
                                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 />
                                             </div>
@@ -176,23 +179,35 @@ export default function Index({ programs, filters }: Props) {
                                         <TableCell className="align-top py-4">
                                             <div className="space-y-1.5 max-w-lg">
                                                 <span className="font-semibold text-gray-900 text-base leading-tight block">
-                                                    {program.name}
+                                                    {event.name}
                                                 </span>
                                                 <p className="text-sm text-gray-500 line-clamp-2 leading-snug">
-                                                    {program.description}
+                                                    {event.description}
                                                 </p>
+                                            </div>
+                                        </TableCell>
+
+                                        {/* STATUS */}
+                                        <TableCell className="hidden md:table-cell align-top py-4">
+                                            <div className="flex flex-col gap-2">
+                                                <Badge variant={event.status === 'open' ? 'default' : 'secondary'} className={event.status === 'open' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}>
+                                                    {event.status === 'open' ? 'Pendaftaran Dibuka' : 'Ditutup'}
+                                                </Badge>
+                                                <Badge variant="outline" className={event.is_public ? 'text-blue-600 border-blue-200' : 'text-amber-600 border-amber-200'}>
+                                                    {event.is_public ? 'Publik' : 'Privat'}
+                                                </Badge>
                                             </div>
                                         </TableCell>
 
                                         {/* SEO STATUS */}
                                         <TableCell className="hidden md:table-cell align-top py-4">
                                             <div className="flex flex-col gap-2 w-max">
-                                                <Badge variant={program.meta_title ? "default" : "secondary"} className={`text-[11px] font-medium justify-start shadow-none ${program.meta_title ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200'}`}>
-                                                    {program.meta_title ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
+                                                <Badge variant={event.meta_title ? "default" : "secondary"} className={`text-[11px] font-medium justify-start shadow-none ${event.meta_title ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200'}`}>
+                                                    {event.meta_title ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
                                                     Meta Title
                                                 </Badge>
-                                                <Badge variant={program.meta_description ? "default" : "secondary"} className={`text-[11px] font-medium justify-start shadow-none ${program.meta_description ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200'}`}>
-                                                    {program.meta_description ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
+                                                <Badge variant={event.meta_description ? "default" : "secondary"} className={`text-[11px] font-medium justify-start shadow-none ${event.meta_description ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200'}`}>
+                                                    {event.meta_description ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
                                                     Meta Desc
                                                 </Badge>
                                             </div>
@@ -206,21 +221,27 @@ export default function Index({ programs, filters }: Props) {
                                                         <MoreHorizontal className="h-5 w-5" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-44 shadow-lg rounded-xl border-gray-100">
-                                                    <DropdownMenuLabel className="text-xs text-gray-400">Opsi Program</DropdownMenuLabel>
+                                                <DropdownMenuContent align="end" className="w-48 shadow-lg rounded-xl border-gray-100">
+                                                    <DropdownMenuLabel className="text-xs text-gray-400">Opsi Event</DropdownMenuLabel>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => handleView(program)} className="cursor-pointer py-2">
+                                                    <DropdownMenuItem onClick={() => handleView(event)} className="cursor-pointer py-2">
                                                         <Eye className="mr-2 h-4 w-4 text-gray-500" />
                                                         Lihat Detail
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem asChild className="cursor-pointer py-2">
-                                                        <Link href={`/admin/program/${program.id}/edit`}>
+                                                        <Link href={`/admin/event/${event.id}/participants`}>
+                                                            <Plus className="mr-2 h-4 w-4 text-green-500" />
+                                                            Daftar Pendaftar
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild className="cursor-pointer py-2">
+                                                        <Link href={`/admin/event/${event.id}/edit`}>
                                                             <Pencil className="mr-2 h-4 w-4 text-blue-500" />
-                                                            Edit Program
+                                                            Edit Event
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => confirmDelete(program.id)} className="text-red-600 cursor-pointer py-2 focus:text-red-700 focus:bg-red-50">
+                                                    <DropdownMenuItem onClick={() => confirmDelete(event.id)} className="text-red-600 cursor-pointer py-2 focus:text-red-700 focus:bg-red-50">
                                                         <Trash2 className="mr-2 h-4 w-4" />
                                                         Hapus
                                                     </DropdownMenuItem>
@@ -231,13 +252,13 @@ export default function Index({ programs, filters }: Props) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-72 text-center">
+                                    <TableCell colSpan={5} className="h-72 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
                                             <div className="bg-gray-50 p-4 rounded-full mb-3 border border-gray-100">
                                                 <Inbox className="w-8 h-8 text-gray-400" />
                                             </div>
                                             <p className="text-base font-medium text-gray-900">Tidak ada data ditemukan</p>
-                                            <p className="text-sm mt-1">Coba sesuaikan kata kunci pencarian atau buat program baru.</p>
+                                            <p className="text-sm mt-1">Coba sesuaikan kata kunci pencarian atau buat event baru.</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -246,14 +267,14 @@ export default function Index({ programs, filters }: Props) {
                     </Table>
 
                     {/* PAGINATION SECTION */}
-                    {programs.links.length > 3 && (
+                    {events.links.length > 3 && (
                         <div className="bg-gray-50/50 border-t border-gray-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <p className="text-sm text-gray-500">
-                                Menampilkan <span className="font-medium text-gray-900">{programs.from || 0}</span> sampai <span className="font-medium text-gray-900">{programs.to || 0}</span> dari <span className="font-medium text-gray-900">{programs.total}</span> total data
+                                Menampilkan <span className="font-medium text-gray-900">{events.from || 0}</span> sampai <span className="font-medium text-gray-900">{events.to || 0}</span> dari <span className="font-medium text-gray-900">{events.total}</span> total data
                             </p>
 
                             <div className="flex items-center gap-1 shadow-sm rounded-md border border-gray-200 overflow-hidden bg-white">
-                                {programs.links.map((link, index) => {
+                                {events.links.map((link, index) => {
                                     const label = link.label
                                         .replace('&laquo; Previous', '«')
                                         .replace('Next &raquo;', '»')
@@ -291,28 +312,28 @@ export default function Index({ programs, filters }: Props) {
                 <DialogContent className="sm:max-w-2xl p-0 overflow-hidden rounded-2xl">
                     <div className="px-6 py-6 space-y-6">
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold">{selectedProgram?.name}</DialogTitle>
+                            <DialogTitle className="text-2xl font-bold">{selectedEvent?.name}</DialogTitle>
                             <DialogDescription>
-                                Detail lengkap informasi program dan metadata SEO.
+                                Detail lengkap informasi event dan metadata SEO.
                             </DialogDescription>
                         </DialogHeader>
 
-                        {selectedProgram && (
+                        {selectedEvent && (
                             <div className="space-y-6">
                                 <div className="w-full h-72 rounded-xl border border-gray-200 overflow-hidden bg-gray-50 shadow-inner">
                                     <img
-                                        src={`/storage/${selectedProgram.image}`}
-                                        alt={selectedProgram.name}
+                                        src={`/storage/${selectedEvent.image}`}
+                                        alt={selectedEvent.name}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
 
                                 {/* Description Box */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Deskripsi Program</h4>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Deskripsi Event</h4>
                                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-200/60 shadow-sm">
                                         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                                            {selectedProgram.description}
+                                            {selectedEvent.description}
                                         </p>
                                     </div>
                                 </div>
@@ -322,19 +343,19 @@ export default function Index({ programs, filters }: Props) {
                                     <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">SEO Meta Title</h4>
                                         <p className="text-sm text-gray-900 font-medium">
-                                            {selectedProgram.meta_title || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
+                                            {selectedEvent.meta_title || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
                                         </p>
                                     </div>
                                     <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">SEO Meta Description</h4>
                                         <p className="text-sm text-gray-900">
-                                            {selectedProgram.meta_description || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
+                                            {selectedEvent.meta_description || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
                                         </p>
                                     </div>
                                     <div className="md:col-span-2 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider sm:w-24">Keywords</h4>
                                         <p className="text-sm text-gray-900 flex-1">
-                                            {selectedProgram.keywords || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
+                                            {selectedEvent.keywords || <span className="italic text-gray-400 font-normal">Belum diisi</span>}
                                         </p>
                                     </div>
                                 </div>
@@ -348,9 +369,9 @@ export default function Index({ programs, filters }: Props) {
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Program Ini?</AlertDialogTitle>
+                        <AlertDialogTitle>Hapus Event Ini?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tindakan ini tidak dapat dibatalkan. Data program beserta gambar akan dihapus permanen dari sistem.
+                            Tindakan ini tidak dapat dibatalkan. Data event beserta gambar akan dihapus permanen dari sistem.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

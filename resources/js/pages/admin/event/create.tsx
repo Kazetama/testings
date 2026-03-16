@@ -1,15 +1,15 @@
 import { Head } from '@inertiajs/react'
-import ProgramForm from '@/components/program-form'
+import EventForm from '@/components/event-form'
 import AppLayout from '@/layouts/app-layout'
 
 export default function Create() {
     return (
         <AppLayout>
-            <Head title="Create Program" />
+            <Head title="Create Event" />
 
             <div className="p-6">
-                <ProgramForm
-                    url="/admin/program"
+                <EventForm
+                    url="/admin/event"
                     method="post"
                 />
             </div>
