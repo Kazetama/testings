@@ -5,8 +5,12 @@ import {
     Search,
     Pencil,
     Trash2,
-    UserCircle
+    UserCircle,
+    FileSpreadsheet,
+    Upload
 } from "lucide-react";
+import { useForm } from "@inertiajs/react";
+import { useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +34,33 @@ export default function Index({ members }: { members: Member[] }) {
         return 'secondary';
     };
 
+    const importInputRef = useRef<HTMLInputElement>(null);
+    const { data, setData, post, processing, reset } = useForm({
+        file: null as File | null
+    });
+
+    const handleExport = () => {
+        window.open('/ketua/members/export', '_blank');
+    };
+
+    const handleImportClick = () => {
+        importInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            router.post('/ketua/members/import', formData, {
+                onSuccess: () => {
+                    if (importInputRef.current) importInputRef.current.value = '';
+                }
+            });
+        }
+    };
+
     const handleDelete = (id: string | number) => {
         if (confirm('Apakah Anda yakin ingin menghapus member ini?')) {
             router.delete(`/ketua/members/${id}`);
@@ -49,8 +80,23 @@ export default function Index({ members }: { members: Member[] }) {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
+                        <input 
+                            type="file" 
+                            ref={importInputRef} 
+                            onChange={handleFileChange} 
+                            accept=".csv" 
+                            className="hidden" 
+                        />
+                        <Button variant="outline" size="sm" className="gap-2" onClick={handleImportClick}>
+                            <Upload className="h-4 w-4" />
+                            Import Excel
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
+                            <FileSpreadsheet className="h-4 w-4" />
+                            Export Excel
+                        </Button>
                         <Button size="sm" className="gap-2" asChild>
-                            <Link href="/ketua/members/create">
+                            <Link href="/members/create">
                                 <Plus className="h-4 w-4" />
                                 Tambah Member
                             </Link>

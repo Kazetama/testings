@@ -53,4 +53,80 @@ class MemberController extends Controller
         return redirect()->back()
             ->with('message', 'Member berhasil dihapus');
     }
+
+    public function export()
+    {
+        $members = Member::latest()->get();
+        $headers = ['Nama Lengkap', 'NIM', 'No Telepon', 'Angkatan', 'Jabatan', 'Status'];
+
+        $csv = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
+        $csv->insertOne($headers);
+
+        foreach ($members as $member) {
+            $csv->insertOne([
+                $member->full_name,
+                $member->nim,
+                $member->phone,
+                $member->batch,
+                $member->position,
+                $member->status,
+            ]);
+        }
+
+        $filename = 'Data-Member-' . date('YmdHis') . '.csv';
+
+        return response((string) $csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function import(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('file');
+        $csv = \League\Csv\Reader::createFromPath($file->getRealPath(), 'r');
+        $csv->setHeaderOffset(0);
+
+        $records = $csv->getRecords();
+        $importedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($records as $record) {
+            try {
+                // Map headers to database columns
+                // Using array_values if headers are not exact or specific names
+                $data = [
+                    'full_name' => $record['Nama Lengkap'] ?? $record['nama_lengkap'] ?? null,
+                    'nim'       => $record['NIM'] ?? $record['nim'] ?? null,
+                    'phone'     => $record['No Telepon'] ?? $record['no_telepon'] ?? $record['phone'] ?? null,
+                    'batch'     => $record['Angkatan'] ?? $record['angkatan'] ?? $record['batch'] ?? null,
+                    'position'  => $record['Jabatan'] ?? $record['jabatan'] ?? $record['position'] ?? null,
+                    'status'    => strtolower($record['Status'] ?? $record['status'] ?? 'trial'),
+                ];
+
+                if (!$data['full_name'] || !$data['nim']) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Check for duplicate NIM
+                if (Member::where('nim', $data['nim'])->exists()) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                Member::create($data);
+                $importedCount++;
+            } catch (\Exception $e) {
+                $skippedCount++;
+            }
+        }
+
+        return redirect()->back()
+            ->with('success', "Berhasil mengimpor $importedCount member. $skippedCount data terlewati.");
+    }
 }

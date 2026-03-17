@@ -13,5 +13,7 @@ Route::middleware(['auth', 'redirect.usertype', 'ketua'])
         )->name('dashboard');
 
         // Resource route untuk CRUD members
+        Route::get('/members/export', [MemberController::class, 'export'])->name('members.export');
+        Route::post('/members/import', [MemberController::class, 'import'])->name('members.import');
         Route::resource('/members', MemberController::class);
     });

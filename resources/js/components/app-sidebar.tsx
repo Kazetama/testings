@@ -67,14 +67,7 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
-
-    {
-        title: 'Lihat Blog',
-        href: '/artikel',
-        icon: LayoutGrid,
-        usertype: ['user', 'admin', 'ketua', 'superadmin'],
-    },
-
+    
     // superadmin navbar items
     {
         title: 'Superadmin Dashboard',
